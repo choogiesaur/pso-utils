@@ -122,6 +122,7 @@ def pack_gsl(unpack_dir, filename):
 
     # Needs both directory and contents order text file
     if not os.path.exists(unpack_dir) or not os.path.exists(text_file):
+        print("unpacked directory or text file does not exist.")
         return None
 
     with open(text_file, 'r') as tx:
@@ -160,9 +161,7 @@ def pack_gsl(unpack_dir, filename):
             if h['length'] % 2048 != 0:
                 offset += 2048 - (h['length'] % 2048)
 
-    
     h_len = len(header_section)
-
     # If header section less than 12288 bytes (0x3000) pad it to that size
     # Files start at that offset. Possibly not always the case, but all the
     # Gamecube files I've viewed are this way.
@@ -207,44 +206,72 @@ def find_and_print(folder, target):
                     if target in item['filename']:
                         print(file + '/' + item['filename'])
 
-# find_and_print('.', 'flower')
+def print_usage():
+    print("Usage:\n")
+    print("# Unpack .gsl archive to folder/textfile pair")
+    print("python gsl.py unpack <input_file> <unpack_dir>\n")
+    print("# Pack folder/textfile pair to .gsl archive")
+    print("python gsl.py pack <unpacked_dir> <out_file>\n")
+    print("# Search all gsl archives in directory for contents with keyword in filename")
+    print("python gsl.py find <directory> <keyword>\n")
+    return
+
 def main():
-    # print(sys.argv)
-    # print("arg 1:", sys.argv[1])
-    # print("arg 2:", sys.argv[2])
+
+    if len(sys.argv) <= 2:
+        print_usage()
+        return
 
     if sys.argv[1] == 'pack':
         if len(sys.argv) != 4:
-            print("Invalid number of arguments.")
+            print("Invalid number of arguments for pack.")
             return
 
-        unpack_dir = sys.argv[2]
-        out_file   = sys.argv[3]
+        unpacked_dir = sys.argv[2]
+        out_file     = sys.argv[3]
 
-        if not os.path.exists(unpack_dir):
+        if not os.path.exists(unpacked_dir):
             print("<unpack_dir> does not exist.")
-            return
         else:
-            pack_gsl(unpack_dir, out_file)
+            pack_gsl(unpacked_dir, out_file)
+        return
 
     if sys.argv[1] == 'unpack':
         if len(sys.argv) != 4:
-            print("Invalid number of arguments.")
+            print("Invalid number of arguments for unpack.")
             return
 
         input_file = sys.argv[2]
-        out_folder = sys.argv[3]
+        unpack_dir = sys.argv[3]
 
         if not os.path.exists(input_file):
             print("<input_file> does not exist.")
-            return
         else:
-            unpack_gsl(input_file, out_folder)
-    # Example of unpack, pack
-    # unpack_gsl('gsl_acave01.gsl', 'extracted_files')
-    # pack_gsl('extracted_files', 'out.gsl')
+            unpack_gsl(input_file, unpack_dir)
+        return
+
+    if sys.argv[1] == 'find':
+        if len(sys.argv) != 4:
+            print("Invalid number of arguments for find.")
+            return
+
+        directory = sys.argv[2]
+        keyword   = sys.argv[3]
+
+        if not os.path.exists(directory):
+            print("<directory> does not exist.")
+        else:
+            find_and_print(directory, keyword)
+        return
+
+    else:
+        print_usage()
+        return
 
 if __name__ == "__main__":
     main()
 
-# python gsl pack 
+### Example of unpack, pack ###
+# unpack_gsl('gsl_acave01.gsl', 'extracted_files')
+# pack_gsl('extracted_files', 'out.gsl')
+# find_and_print('.', 'flower')
