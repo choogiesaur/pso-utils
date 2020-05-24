@@ -1,5 +1,6 @@
 import os
 import struct
+import sys
 
 # library to parse gamecube .gsl archive
 # adapted from PSO Developers Wiki
@@ -106,7 +107,9 @@ def unpack_gsl(filename, unpack_dir):
         contents = gsl_parse(filename)
 
         for file in contents:
-            tx.write('%s\n' % file['filename'])
+            name = file['filename']
+            tx.write('%s\n' % name)
+            print(os.path.join(unpack_dir, name))
             export_file(file, unpack_dir)
 
 # pack contents of <unpack_dir> following order in <unpack_dir>.txt to <filename>
@@ -152,7 +155,7 @@ def pack_gsl(unpack_dir, filename):
                 h['unused'])
 
             header_section += packed
-            print("HeaderEntryLength, HeaderSectionLength", len(packed), len(header_section))
+            # print("HeaderEntryLength, HeaderSectionLength", len(packed), len(header_section))
             offset += h['length']
             if h['length'] % 2048 != 0:
                 offset += 2048 - (h['length'] % 2048)
@@ -168,7 +171,6 @@ def pack_gsl(unpack_dir, filename):
 
     padded_header = struct.pack(str(h_len+rem)+'s', header_section)
     print("orig header len:", len(header_section))
-    print("pad header len:" , len(padded_header))
 
     file_section = bytearray()
     for item in contents:
@@ -181,14 +183,14 @@ def pack_gsl(unpack_dir, filename):
 
         format_str = str(size+diff)+'s'
         padded = struct.pack(format_str, arr)
-        print("OrigFile/Padded: ", len(arr), len(padded))
+        # print("OrigFile/Padded: ", len(arr), len(padded))
         file_section += bytes(padded)
 
     print("final header section length", len(padded_header))
     print("final file section length: ", len(file_section))
 
     combined = padded_header + file_section
-    print(len(combined))
+    print("final archive size:", len(combined))
 
     with open(filename, 'wb') as out:
         out.write(combined)
@@ -205,8 +207,44 @@ def find_and_print(folder, target):
                     if target in item['filename']:
                         print(file + '/' + item['filename'])
 
-find_and_print('.', 'flower')
+# find_and_print('.', 'flower')
+def main():
+    # print(sys.argv)
+    # print("arg 1:", sys.argv[1])
+    # print("arg 2:", sys.argv[2])
 
-# Example of unpack, pack
-# unpack_gsl('gsl_acave01.gsl', 'extracted_files')
-# pack_gsl('extracted_files', 'out.gsl')
+    if sys.argv[1] == 'pack':
+        if len(sys.argv) != 4:
+            print("Invalid number of arguments.")
+            return
+
+        unpack_dir = sys.argv[2]
+        out_file   = sys.argv[3]
+
+        if not os.path.exists(unpack_dir):
+            print("<unpack_dir> does not exist.")
+            return
+        else:
+            pack_gsl(unpack_dir, out_file)
+
+    if sys.argv[1] == 'unpack':
+        if len(sys.argv) != 4:
+            print("Invalid number of arguments.")
+            return
+
+        input_file = sys.argv[2]
+        out_folder = sys.argv[3]
+
+        if not os.path.exists(input_file):
+            print("<input_file> does not exist.")
+            return
+        else:
+            unpack_gsl(input_file, out_folder)
+    # Example of unpack, pack
+    # unpack_gsl('gsl_acave01.gsl', 'extracted_files')
+    # pack_gsl('extracted_files', 'out.gsl')
+
+if __name__ == "__main__":
+    main()
+
+# python gsl pack 

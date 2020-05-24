@@ -24,6 +24,8 @@ test/
 *.rar
 *.tar
 *.zip
+*.gsl
+
 
 # Vim generated files #
 #######################
