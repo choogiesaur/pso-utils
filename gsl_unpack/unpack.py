@@ -12,8 +12,8 @@ import struct
 # };
 
 # At least for gamecube:
-# File contents seem to always start at 0x3000 or 12288 bytes
-# Possibly saw one at 18432?? But never again?
+# Header section seems to always end at 0x3000 or 12288 bytes and file section starts thereafter
+# Possibly saw one at end at 18432 bytes ??
 
 # Given file pointer, parse all header entries (0x30 bytes each) at beginning of file
 def parse_contents(fp):
@@ -53,8 +53,6 @@ def parse_contents(fp):
         if len(name) == 0:
             break
 
-        # print(data)
-
         header = {
             'filename'  : name,
             'offset'    : offset,
@@ -93,10 +91,10 @@ def export_file(file_dict, directory):
     with open(full_path, 'wb') as f:
         f.write(file_dict["bytes"])
 
-# given <filename> unpack contents to <unpack_dir>
+# given <filename> unpack contents to <unpack_dir>; generates text list of files for repacking in same order
 def unpack_gsl(filename, unpack_dir):
 
-    print("UNPACKING: "+filename+" TO: "+unpack_dir)
+    print("UNPACKING: " + filename + " TO: " + unpack_dir)
 
     text_file = unpack_dir + '.txt'
 
@@ -105,9 +103,9 @@ def unpack_gsl(filename, unpack_dir):
 
     with open(text_file, 'w') as tx:
         
-        gsl = gsl_parse(filename)
+        contents = gsl_parse(filename)
 
-        for file in gsl:
+        for file in contents:
             tx.write('%s\n' % file['filename'])
             export_file(file, unpack_dir)
 
@@ -119,15 +117,15 @@ def pack_gsl(unpack_dir, filename):
     # To adhere to file order within archive
     text_file = unpack_dir + '.txt'
 
-    # if directory dont exit, quit
-    if not os.path.exists(unpack_dir):
+    # Needs both directory and contents order text file
+    if not os.path.exists(unpack_dir) or not os.path.exists(text_file):
         return None
 
     with open(text_file, 'r') as tx:
         file_names = [line.strip('\n') for line in tx]
 
     contents = []
-    offset   = 12288 #starting offset for files; investigate if there are other cases
+    offset   = 12288 # starting offset for files; investigate if there are other cases
 
     header_section = bytearray()
     for item in file_names:
@@ -168,32 +166,34 @@ def pack_gsl(unpack_dir, filename):
     if h_len % 12288 != 0:
         rem = 12288 - (h_len % 12288)
 
-    padded_h = struct.pack(str(h_len+rem)+'s', header_section)
-    print("orig header len:",len(header_section))
-    print("pad header len:",len(padded_h))
+    padded_header = struct.pack(str(h_len+rem)+'s', header_section)
+    print("orig header len:", len(header_section))
+    print("pad header len:" , len(padded_header))
 
     file_section = bytearray()
     for item in contents:
         size = len(item['bytes'])
-        arr = bytearray(item['bytes'])
+        arr  = bytearray(item['bytes'])
 
         # Pad file section to 2048 byte multiple
         if size % 2048 != 0:
             diff = 2048 - (size % 2048)
 
-        padded = struct.pack(str(size+diff)+'s', arr)
+        format_str = str(size+diff)+'s'
+        padded = struct.pack(format_str, arr)
         print("OrigFile/Padded: ", len(arr), len(padded))
         file_section += bytes(padded)
 
-    print("final header section length", len(padded_h))
+    print("final header section length", len(padded_header))
     print("final file section length: ", len(file_section))
 
-    combined = padded_h + file_section
+    combined = padded_header + file_section
     print(len(combined))
 
     with open(filename, 'wb') as out:
         out.write(combined)
-
+        
+# Get all files with .gsl extension and search contents for a keyword
 def find_and_print(folder, target):
     for (root, dirs, files) in os.walk(folder):
         for file in files:
@@ -205,9 +205,8 @@ def find_and_print(folder, target):
                     if target in item['filename']:
                         print(file + '/' + item['filename'])
 
-folder = 'C:\\Users\\choogie\\Desktop\\root'
 find_and_print('.', 'flower')
-# find_and_print(folder, 'flower')
 
+# Example of unpack, pack
 # unpack_gsl('gsl_acave01.gsl', 'extracted_files')
 # pack_gsl('extracted_files', 'out.gsl')
