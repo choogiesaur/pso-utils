@@ -15,25 +15,23 @@ import sys
 
 # At least for gamecube:
 # Header section seems to always end at 0x3000 or 12288 bytes and file section starts thereafter
-# Possibly saw one end at 18432 bytes ??
+# Possibly saw one end at 18432 bytes ?? Can't find it.
 
 # Given file pointer, parse all header entries (0x30 bytes each) at beginning of file
 def parse_contents(fp):
 
-    # Get size by seeking end and capturing current position
+    # Get archive size by seeking end and capturing current position
     fp.seek(0, os.SEEK_END)
     size = fp.tell()
     fp.seek(0)
 
     # Iteratively parse the header entries
     headers = []
-    datas = []
     while fp.tell() < size:
         start_pos = fp.tell()
 
         # total size of each header entry is 0x30 including unused bytes
         data = fp.read(0x30)
-        datas += data
 
         # '>'   = big endian (gamecube)
         # 32s   = uint8_t[32]   = s[0]
@@ -212,6 +210,13 @@ def find_and_print(folder, target):
                     if target in item['filename']:
                         print(file + '/' + item['filename'])
 
+# parse archive and list contents
+def list_contents(filename):
+    contents = gsl_parse(filename)
+    for item in contents:
+        print(item['filename'])
+
+
 # usage help screen
 def print_usage():
     print("Usage:\n")
@@ -225,10 +230,10 @@ def print_usage():
 
 def main():
 
+    # print(len(sys.argv))
     if len(sys.argv) <= 2:
         print_usage()
         return
-
     if sys.argv[1] == 'pack':
         if len(sys.argv) != 4:
             print("Invalid number of arguments for pack.")
@@ -243,7 +248,7 @@ def main():
             pack_gsl(unpacked_dir, out_file)
         return
 
-    if sys.argv[1] == 'unpack':
+    elif sys.argv[1] == 'unpack':
         if len(sys.argv) != 4:
             print("Invalid number of arguments for unpack.")
             return
@@ -257,7 +262,7 @@ def main():
             unpack_gsl(input_file, unpack_dir)
         return
 
-    if sys.argv[1] == 'find':
+    elif sys.argv[1] == 'find':
         if len(sys.argv) != 4:
             print("Invalid number of arguments for find.")
             return
@@ -269,6 +274,18 @@ def main():
             print("<directory> does not exist.")
         else:
             find_and_print(directory, keyword)
+        return
+
+    elif sys.argv[1] == 'list':
+        if len(sys.argv) != 3:
+            print("Invalid number of arguments for list.")
+            return
+        
+        input_file = sys.argv[2]
+        if not os.path.exists(input_file):
+            print("<input_file> does not exist.")
+        else:
+            list_contents(input_file)
         return
 
     else:
