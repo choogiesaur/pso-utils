@@ -1,8 +1,6 @@
 # pso-utils
 a collection of helpful utilities for modding PSO!
 
-
-
 ## gsl_util
 I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with adjustments for gamecube format, and added functionality to repack an archive.
 - python command line script for now
@@ -33,7 +31,6 @@ python gsl.py pack caves1 out.gsl
 python gsl.py find . flower
 python gsl.py find ~/Desktop/root nanodrago
 ```
-
 
 http://sharnoth.com/psodevwiki/dreamcast/gsl
 
