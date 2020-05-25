@@ -226,6 +226,8 @@ def print_usage():
     print("python gsl.py pack <unpacked_dir> <out_file>\n")
     print("# Search all gsl archives in directory for contents with keyword in filename")
     print("python gsl.py find <directory> <keyword>\n")
+    print("# List contents of an archive")
+    print("python gsl.py list <input_file>\n")
     return
 
 def main():
