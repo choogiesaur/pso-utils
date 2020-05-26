@@ -24,8 +24,11 @@ test/
 *.rar
 *.tar
 *.zip
-*.gsl
 
+# PSO files #
+#############
+*.gsl
+*.bml
 
 # Vim generated files #
 #######################
