@@ -148,14 +148,14 @@ def pack_gsl(unpack_dir, filename):
             }
 
             # pack the dictionary to 48 raw bytes, this is one header entry
-            packed = struct.pack('>32sII8s', 
+            packed_entry = struct.pack('>32sII8s', 
                 h['filename'], 
                 h['offset'], 
                 h['length'], 
                 h['unused'])
 
             # append the header entry bytes to the header segment
-            header_section += packed
+            header_section += packed_entry
 
             # increment offset by length of curr file then pad to multiple of 2048
             offset += h['length']
