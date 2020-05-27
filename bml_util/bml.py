@@ -2,6 +2,9 @@ import os
 import struct
 import sys
 
+# afs/gsl/bml should generally be the same, 
+# except for the endianness of the file offsets 
+# and sizes for each file entry
 def bml_archive(filename):
  
     if not os.path.exists(filename):
@@ -76,32 +79,71 @@ def bml_archive(filename):
 #   uint32_t unk; // 0x00000150, magic number?
 #   uint8_t unused2[52];
 # };
-def extract_header(filename):
+
+# Extract the first 64 bytes, BML header
+def extract_header(fp):
+
+    fp.seek(0, os.SEEK_END)
+    size = fp.tell()
+    print("Size:", size)
+
+    fp.seek(0)
+    header_bytes = fp.read(64)
+    s = struct.unpack('>4sII52s', header_bytes)
+
+    return s
+
+# struct bml_file_table_entry_s {
+#   uint8_t  filename[32];
+#   uint32_t compressed_size;
+#   uint32_t unused1;
+#   uint32_t decompressed_size;
+#   uint32_t gvm_compressed_size;   # if this 
+#   uint32_t gvm_decompressed_size; # and this are > 0, there is a .gvm following this file
+#   uint8_t  unused[12]
+# };
+
+# Extract the 64 byte file entry at offset
+def extract_file_entry(fp, offset):
+
+    fp.seek(offset)
+    print("0x"+str(fp.tell()))
+
+    entry_bytes = fp.read(64)
+    s = struct.unpack('>32sIIIII12s', entry_bytes)
+
+    return s
+
+def print_file_entry(file_entry):
+    print(file_entry[0].decode('ascii').rstrip(' \t\r\n\0'))
+    print('compressed_size:',file_entry[1])
+    print('unused1:',file_entry[2])
+    print('decompressed_size:',file_entry[3])
+    print('gvm_compressed_size:',file_entry[4])
+    print('gvm_decompressed_size:',file_entry[5])
+    print()
+
+def main():
+
+    filename = sys.argv[1]
 
     if not os.path.exists(filename):
         return None
 
     with open(filename, "rb") as fp:
- 
-        fp.seek(0, os.SEEK_END)
-        size = fp.tell()
-        print("Size:", size)
- 
-        fp.seek(0)
-        header_bytes = fp.read(64)
-        s = struct.unpack('>4sII52s', header_bytes)
 
-        print("unused 4 bytes:",    s[0])
-        print("num_files 4 bytes:", s[1])
-        print("unkown 4 bytes:",    s[2])
-        print("unkown 52 bytes:",   s[3])
+        # Extract BML header
+        header = extract_header(fp)
+        file_count = header[1]
+        print('File Count:', file_count, '\n')
 
-# bml_archive('bm_ene_re2_flower_a.bml')
-# extract_header('bm_ene_re2_flower_a.bml')
+        # Starting right after header, extract n=file_count file_entries
+        offset = 64
+        for i in range(file_count):
+            file_entry = extract_file_entry(fp, offset)
 
-def main():
-
-    extract_header(sys.argv[1])
+            print_file_entry(file_entry)
+            offset += 64
 
 if __name__ == "__main__":
     main()
