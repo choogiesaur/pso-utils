@@ -93,7 +93,7 @@ def export_file(file_dict, directory):
 # Given <filename> unpack contents to <unpack_dir> & write contents to <unpack_dir>.txt
 def unpack_gsl(filename, unpack_dir):
 
-    print("UNPACKING: " + filename + " TO: " + unpack_dir)
+    print("unpacking: " + filename + " to: " + unpack_dir)
 
     text_file = unpack_dir + '.txt'
 
