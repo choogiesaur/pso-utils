@@ -32,6 +32,8 @@ python gsl.py find . flower
 python gsl.py find ~/Desktop/root nanodrago
 ```
 
+There's some edge case behavior I haven't fully figured out yet, so if you encounter a file that doesn't work please create an issue so I can figure it out. (For instance - does .gsl file section always start at 12288 bytes)
+
 http://sharnoth.com/psodevwiki/dreamcast/gsl
 
 http://sharnoth.com/psodevwiki/format/gsl
