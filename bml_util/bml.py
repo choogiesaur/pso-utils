@@ -73,15 +73,15 @@ def bml_archive(filename):
  
         return bml
 
-# struct bml_header_s {
-#   uint8_t unused[4];
-#   uint32_t num_files;
-#   uint32_t unk; // 0x00000150, magic number?
-#   uint8_t unused2[52];
-# };
-
 # Extract the first 64 bytes, BML header
 def extract_header(fp):
+
+    # struct bml_header_s {
+    #   uint8_t unused[4];
+    #   uint32_t num_files;
+    #   uint32_t unk; // 0x00000150, magic number?
+    #   uint8_t unused2[52];
+    # };
 
     fp.seek(0, os.SEEK_END)
     size = fp.tell()
@@ -93,18 +93,18 @@ def extract_header(fp):
 
     return s
 
-# struct bml_file_table_entry_s {
-#   uint8_t  filename[32];
-#   uint32_t compressed_size;
-#   uint32_t unused1;
-#   uint32_t decompressed_size;
-#   uint32_t gvm_compressed_size;   # if this 
-#   uint32_t gvm_decompressed_size; # and this are > 0, there is a .gvm following this file
-#   uint8_t  unused[12]
-# };
-
-# Extract the 64 byte file entry at offset
+# Extract a 64 byte file entry at given offset
 def extract_file_entry(fp, offset):
+
+    # struct bml_file_table_entry_s {
+    #   uint8_t  filename[32];
+    #   uint32_t compressed_size;
+    #   uint32_t unused1;
+    #   uint32_t decompressed_size;
+    #   uint32_t gvm_compressed_size;   # if this 
+    #   uint32_t gvm_decompressed_size; # and this are > 0, there is a .gvm following this file
+    #   uint8_t  unused[12]
+    # };
 
     fp.seek(offset)
     print("0x"+str(fp.tell()))
