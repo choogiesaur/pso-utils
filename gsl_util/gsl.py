@@ -165,8 +165,8 @@ def pack_gsl(unpack_dir, filename):
     h_len = len(header_section)
     print("orig header len:", h_len)
 
-    # If header section less than 12288 bytes pad it to that size or next multiple.
-    # Files start at that offset (0x3000). Possibly not always true, 
+    # If header section not a multiple of 12288 bytes, calculate padding to next multiple of 12288.
+    # Files seem to start at that offset (0x3000). Possibly not always true, 
     # but all the Gamecube files I've viewed are this way.
     if h_len % 12288 != 0:
         rem = 12288 - (h_len % 12288)
