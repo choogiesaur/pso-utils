@@ -41,16 +41,17 @@ def parse_contents(fp):
         s = struct.unpack('>32sII8s', data)
 
         name   = s[0].decode('ascii').rstrip(' \t\r\n\0')
+        # first entry with filename starting with null byte = end of header list
+        if len(name) == 0:
+            break
+            
         offset = s[1] * 2048 # offset is stored in 'blocks' which 2048 bytes long
         length = s[2]
         unused = s[3]
 
-        if offset < size:
+        # Check if this broke with if condition reversal
+        if size > offset:
             size = offset
-
-        # first entry with filename starting with null byte = end of header list
-        if len(name) == 0:
-            break
 
         header = {
             'filename'  : name,
