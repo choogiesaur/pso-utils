@@ -91,37 +91,32 @@ def export_file(file_dict, directory):
     with open(full_path, 'wb') as f:
         f.write(file_dict["bytes"])
 
-# Given <filename> unpack contents to <unpack_dir> & write contents to <unpack_dir>.txt
+# Given <filename>.gsl unpack contents to <unpack_dir> & write contents to <unpack_dir>.txt
 def unpack_gsl(filename, unpack_dir):
 
     print("unpacking: " + filename + " to: " + unpack_dir)
-
     text_file = unpack_dir + '.txt'
 
     if not os.path.exists(unpack_dir):
         os.mkdir(unpack_dir)
 
     with open(text_file, 'w') as tx:
-        
         contents = gsl_parse(filename)
-
         for file in contents:
             name = file['filename']
             tx.write('%s\n' % name)
             print(os.path.join(unpack_dir, name))
             export_file(file, unpack_dir)
 
-# pack contents of <unpack_dir> to <filename> following order in <unpack_dir>.txt
+# pack contents of <unpack_dir> to <filename>.gsl following order in <unpack_dir>.txt
 def pack_gsl(unpack_dir, filename):
     
     print("packing: " + unpack_dir + " to file: " + filename)
-
-    # Text file with list of contents
     text_file = unpack_dir + '.txt'
 
     # Needs both directory and text file to properly order contents
     if not os.path.exists(unpack_dir) or not os.path.exists(text_file):
-        print("unpacked directory or text file does not exist.")
+        print("Need both unpacked directory and .txt file of same name to pack.")
         return None
 
     with open(text_file, 'r') as tx:
@@ -134,10 +129,8 @@ def pack_gsl(unpack_dir, filename):
     for item in file_names:
         path = os.path.join(".", unpack_dir, item)
         with open(path, 'rb') as f:
-            # read file to bytes
+            # read file to bytes, add item in contents list
             raw_bytes = f.read()
-
-            # add item in contents list
             contents.append({'filename': item, 'bytes': raw_bytes})
 
             # construct dictionary for header entry
@@ -158,7 +151,7 @@ def pack_gsl(unpack_dir, filename):
             # append the header entry bytes to the header segment
             header_section += packed_entry
 
-            # increment offset by length of curr file then pad to multiple of 2048
+            # increment offset by length of current file, then pad to a multiple of 2048
             offset += h['length']
             if h['length'] % 2048 != 0:
                 offset += 2048 - (h['length'] % 2048)
@@ -169,8 +162,10 @@ def pack_gsl(unpack_dir, filename):
     # If header section not a multiple of 12288 bytes, calculate padding to next multiple of 12288.
     # Files seem to start at that offset (0x3000). Possibly not always true, 
     # but all the Gamecube files I've viewed are this way.
-    if h_len % 12288 != 0:
-        rem = 12288 - (h_len % 12288)
+    rem = 12288 - (h_len % 12288) if h_len % 12288 != 0 else 0
+    #rem = 0
+    #if h_len % 12288 != 0:
+    #    rem = 12288 - (h_len % 12288)
 
     # pack the header into bytes with calculated padding
     header_format = str(h_len+rem)+'s'
