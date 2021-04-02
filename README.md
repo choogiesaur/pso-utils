@@ -1,5 +1,5 @@
 # pso-utils
-a collection of helpful utilities for modding PSO!
+a collection of helpful utilities for modding PSO! these are Python utilities aimed at parsing various PSO game file formats to enable users to extract, modify, and repack game assets before reinserting them into the game
 
 ## gsl_util
 I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with adjustments for gamecube format, and added functionality to repack an archive.
