@@ -2,9 +2,8 @@
 a collection of helpful utilities for modding PSO! these are Python utilities aimed at parsing various PSO game file formats to enable users to extract, modify, and repack game assets before reinserting them into the game
 
 ## gsl_util
-I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with adjustments for gamecube format, and added functionality to repack an archive.
+I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with byte order adjustments for gamecube format (Big Endian), and added functionality to repack an archive.
 - python command line script for now
-- gamecube .gsl format is Big Endian, which this tool is designed for
 - will not work with dreamcast/pc formats, use alternate tools for those
 
 Notes:
@@ -12,7 +11,7 @@ Notes:
 - The folder and text file of the same name must be present to repack
 - This is to preserve the file order which may matter for in-game loading behavior (ex: stage textures in specific order)
 - When replacing individual files probably best to keep the original name, but you could modify the name in the text file
-- Max size for a filename in the header is 32 characters
+- Max size for a filename in the header is 32 characters/bytes
 
 *usage:*
 ```
