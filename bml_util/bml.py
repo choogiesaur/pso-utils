@@ -15,6 +15,7 @@ def bml_archive(filename):
         fp.seek(0, os.SEEK_END)
         size = fp.tell()
  
+        # Parse number of files in archive from file header
         fp.seek(4)
         count = struct.unpack('i', fp.read(4))[0]
         fp.seek(0x40)
@@ -41,6 +42,7 @@ def bml_archive(filename):
             if pvm_compressed_size == 0:
                 continue
  
+            # File name without extension
             basename = os.path.splitext(name)[0]
  
             files.append({
@@ -56,7 +58,7 @@ def bml_archive(filename):
         bml = []
         for file in files:
  
-            #Seek to next non-zero byte
+            # Seek to next non-zero byte
             while fp.tell() < size:
                 byte = struct.unpack('B', fp.read(1))[0]
                 if byte == 0:
@@ -64,7 +66,7 @@ def bml_archive(filename):
                 fp.seek(-1, os.SEEK_CUR)
                 break
  
-            #Read and decompress the file
+            # Read and decompress the file by reading amount of bytes for this file discovered in file header
             bytes = fp.read(file["compressed_size"])
             bml.append({
                 "filename" : file["filename"],
