@@ -1,25 +1,34 @@
 # pso-utils
-A collection of Python utilities made for parsing Sega/Phantasy Star Online (PSO) file formats. Enables users to unpack game asset archives, optionally modify the extracted assets, and repack them in a format that is accepted by the game's code. The motivation is to facilitate creating fresh custom content for a beloved cult classic MMO!
+A collection of Python utilities made for parsing Sega's Phantasy Star Online (PSO) file formats. Enables users to unpack game assets, optionally modify the extracted models and textures, and repack them in a format that is accepted by the game's code. The motivation is to facilitate creating custom content for a beloved cult classic MMO!
 
 These tools mainly pertain to the Gamecube version of PSO. Due to differences in file format, they will likely not work with other versions (and I made them because Gamecube support is lacking.)
 
-- GSL - Archive format usually containing 2d textures to be applied to 3d models
-- BML - Archive format containing assets for in-game enemies and items, including textures, 3d models, and animations 
+- GSL - Archive format usually containing 2D textures to be applied to 3D models
+- BML - Archive format containing assets for in-game enemies and items, including textures, 3D models, and animations 
 
 ## gsl_util
-I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the C++ Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with byte order adjustments for Gamecube format (Big Endian), and added functionality to repack an archive.
-- Python script; See below for usage
-- Not meant for dreamcast/pc formats, use alternate tools for those
+I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the C++ Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with byte order adjustments for Gamecube format (Big Endian), and added functionality to repack an archive. It seems to be 100% faithful, as unpacking and repacking an original archive produces an identical file with the same hash. 
+#### unpack / pack ####
+- Unpacking a .gsl file produces a folder with the contents and text file with the original order:
+```
+pso-utils/
+├── my_archive/
+│   ├── unpacked contents 1
+│   ├── unpacked contents 2
+│   └── ...
+├── my_archive.txt
+└── my_archive.gsl # input file...
+```
+- This is to preserve the order of files in the archive which may matter for in-game loading behavior (ex: stage textures expected to be found immediately after models).
+- The folder and text file of the same name must be present to repack.
+- When replacing individual files, it's probably best to keep the original name (but you could modify both the filename and its counterpart in the text file.)
+- Max size for a filename in the header is 32 characters/bytes.
+
+#### find ####
+- Parses a .gsl archive and returns all contents containing input string in filename. Useful for figuring out what asset to modify for a particular item or enemy. (Ex. Poison Lily and Nar Lily textures have 'flower' in their filename.)
 
 ## bml_util
 Parsing and extracting gamecube BML is finished; however repacking into an "official" Sega BML is more complex. There are some caveats in the file format that seem unintuitive, for instance: blocks of empty space between archive contents which are usually 2048 bytes, but sometimes arbitrarily larger. It's hard to programmatically recreate these as it's unknown to me why these sections are larger.
-
-Notes:
-- Unpacking a .gsl file produces a folder and text file with the ordered contents.
-- The folder and text file of the same name must be present to repack.
-- This is to preserve the file order which may matter for in-game loading behavior (ex: stage textures in specific order).
-- When replacing individual files, it's probably best to keep the original name (but you could modify both the filename and its counterpart in the text file.)
-- Max size for a filename in the header is 32 characters/bytes.
 
 *usage:*
 ```
