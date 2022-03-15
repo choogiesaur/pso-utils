@@ -13,9 +13,9 @@ import sys
 #     uint8_t _unused[8];   // 1 byte * 8
 # };
 
-# At least for gamecube:
+# At least for GameCube:
 # Header section seems to always end at 0x3000 or 12288 bytes and file section starts thereafter
-# Possibly saw one end at 18432 bytes ?? Can't find it.
+# Possibly saw one end at 18432 bytes ?? Can't find it again, contact me if you find an example.
 
 # Given file pointer, parse all header entries (0x30 bytes each) at beginning of file
 def parse_contents(fp):
@@ -45,11 +45,10 @@ def parse_contents(fp):
         if len(name) == 0:
             break
             
-        offset = s[1] * 2048 # offset is stored in 'blocks' which 2048 bytes long
+        offset = s[1] * 2048 # offset is stored in 'blocks' which are 2048 bytes long
         length = s[2]
         unused = s[3]
 
-        # Check if this broke with if condition reversal
         if size > offset:
             size = offset
 
@@ -81,10 +80,9 @@ def gsl_parse(filename):
         return None
 
     with open(filename, 'rb') as fp:    
-        contents = parse_contents(fp)
-        return contents
+        return parse_contents(fp)
 
-# Given a name:bytes file_dict, output a file
+# Given a name:bytes file_dict, output a file to user's file system
 def export_file(file_dict, directory):
     full_path = os.path.join(directory, file_dict['filename'])
 
@@ -117,13 +115,13 @@ def pack_gsl(unpack_dir, filename):
     # Needs both directory and text file to properly order contents
     if not os.path.exists(unpack_dir) or not os.path.exists(text_file):
         print("Need both unpacked directory and .txt file of same name to pack.")
-        return None
+        return
 
     with open(text_file, 'r') as tx:
         file_names = [line.strip('\n') for line in tx]
 
     contents = []
-    offset   = 12288 # starting offset for files; investigate if there are other cases
+    offset   = 12288 # starting offset for files
 
     header_section = bytearray()
     for item in file_names:
@@ -163,9 +161,6 @@ def pack_gsl(unpack_dir, filename):
     # Files seem to start at that offset (0x3000). Possibly not always true, 
     # but all the Gamecube files I've viewed are this way.
     rem = 12288 - (h_len % 12288) if h_len % 12288 != 0 else 0
-    #rem = 0
-    #if h_len % 12288 != 0:
-    #    rem = 12288 - (h_len % 12288)
 
     # pack the header into bytes with calculated padding
     header_format = str(h_len+rem)+'s'
