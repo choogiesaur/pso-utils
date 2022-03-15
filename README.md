@@ -1,15 +1,18 @@
 # pso-utils
-A collection of Python utilities made for parsing Sega/Phantasy Star Online (PSO) file formats. Enables users to unpack game asset archives, optionally modify the extracted assets, and repack them in a format that is faithful to the original. The purpose is to facilitate creating fresh custom content for a beloved cult classic!
+A collection of Python utilities made for parsing Sega/Phantasy Star Online (PSO) file formats. Enables users to unpack game asset archives, optionally modify the extracted assets, and repack them in a format that is accepted by the game's code. The motivation is to facilitate creating fresh custom content for a beloved cult classic MMO!
 
 These tools mainly pertain to the Gamecube version of PSO. Due to differences in file format, they will likely not work with other versions (and I made them because Gamecube support is lacking.)
 
-## bml_util
-WIP! Parsing and extracting gamecube BML is basically done; however recreating an "official" Sega BML is more complex. There are some caveats in the file format that seem unintuitive, for instance: blocks of empty space between archive contents which are usually 2048 bytes, but sometimes arbitrarily larger. It's hard to programmatically recreate these as it's unknown to me why these sections are larger. 
+GSL - Archive format usually containing 2d textures to be applied to 3d models
+BML - Archive format containing assets for in-game enemies and items, including textures, 3d models, and animations 
 
 ## gsl_util
 I couldn't find a proper Gamecube format .gsl packer/unpacker so I made this one. The base code is adapted from the Dreamcast example on the [PSO Developers Wiki](http://sharnoth.com/psodevwiki/start) with byte order adjustments for Gamecube format (Big Endian), and added functionality to repack an archive.
 - python command line script for now
 - will not work with dreamcast/pc formats, use alternate tools for those
+
+## bml_util
+Parsing and extracting gamecube BML is finished; however repacking into an "official" Sega BML is more complex. There are some caveats in the file format that seem unintuitive, for instance: blocks of empty space between archive contents which are usually 2048 bytes, but sometimes arbitrarily larger. It's hard to programmatically recreate these as it's unknown to me why these sections are larger.
 
 Notes:
 - Unpacking a file produces a folder and text file with the ordered contents.
