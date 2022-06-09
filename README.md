@@ -16,8 +16,8 @@ pso-utils/
 │   ├── unpacked contents 1
 │   ├── unpacked contents 2
 │   └── ...
-├── my_archive.txt
-└── my_archive.gsl # input file...
+├── my_archive.txt # output file with original order
+└── my_archive.gsl
 ```
 - This is to preserve the order of files in the archive which may matter for in-game loading behavior (ex: stage textures expected to be found immediately after models).
 - The folder and text file of the same name must be present to repack.
@@ -48,7 +48,7 @@ python gsl.py find . flower
 python gsl.py find ~/Desktop/root nanodrago
 ```
 
-There's some edge case behavior I haven't fully figured out yet, so if you encounter a file that doesn't work please create an issue so I can figure it out. (For instance - does .gsl file section always start at 12288 bytes)
+There's some edge case behavior I haven't fully figured out yet, so if you encounter a bug please create an issue so I can track it :). (For instance - does .gsl file section always start at 12288 bytes?)
 
 http://sharnoth.com/psodevwiki/dreamcast/gsl
 
