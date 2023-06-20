@@ -27,6 +27,7 @@ def parse_contents(fp):
 
     # Iteratively parse the header entries
     headers = []
+    max_offset = 0
     while fp.tell() < size:
         start_pos = fp.tell()
 
@@ -49,8 +50,7 @@ def parse_contents(fp):
         length = s[2]
         unused = s[3]
 
-        if size > offset:
-            size = offset
+        max_offset = max(max_offset, offset)
 
         header = {
             'filename'  : name,
@@ -60,6 +60,9 @@ def parse_contents(fp):
         }
         headers.append(header)
     
+    if size > max_offset:
+        size = max_offset
+
     contents = []
     for header in headers:
         # go to offset specified in current header entry
@@ -72,6 +75,7 @@ def parse_contents(fp):
         contents.append({'filename': header['filename'], 'bytes': chunk})
 
     return contents
+
 
 # Given filename, parse its header table and file contents
 def gsl_parse(filename):
@@ -173,8 +177,9 @@ def pack_gsl(unpack_dir, filename):
         arr  = bytearray(item['bytes'])
 
         # Pad file section to 2048 byte multiple
+        diff = 0
         if size % 2048 != 0:
-            diff = 2048 - (size % 2048)
+           diff = (2048 - (size % 2048)) % 2048
 
         format_str = str(size+diff)+'s'
         padded = struct.pack(format_str, arr)
