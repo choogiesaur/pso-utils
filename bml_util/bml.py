@@ -129,7 +129,7 @@ def pack_bml(unpack_dir, filename, order_file):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python script.py <bml_file>")
+        print("Usage: python bml.py <bml_file>")
         return
 
     filename = sys.argv[1]
