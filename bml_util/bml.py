@@ -2,7 +2,66 @@ import os
 import struct
 import sys
 
-# PRS decompression not implemented at the moment.
+def prs_compress(data):
+    compressed_data = bytearray()
+    length = len(data)
+    pos = 0
+
+    while pos < length:
+        rep_offset = 1
+        rep_length = 2
+        max_offset = min(pos, 0x1000)
+
+        for offset in range(1, max_offset + 1):
+            if data[pos:pos + rep_length] == data[pos - offset:pos - offset + rep_length]:
+                while pos + rep_length < length and rep_length < 0x12 and data[pos + rep_length] == data[pos - offset + rep_length]:
+                    rep_length += 1
+
+                if rep_length > 2:
+                    break
+
+                rep_length = 1
+
+        if rep_length > 2:
+            rep_offset = offset
+
+        if rep_length == 1:
+            compressed_data.append(0)
+            compressed_data.append(data[pos])
+            pos += 1
+        else:
+            rep_offset -= 1
+            compressed_data.append(((rep_length - 3) << 4) | (rep_offset >> 8))
+            compressed_data.append(rep_offset & 0xFF)
+            compressed_data.append(rep_length - 3)
+            pos += rep_length
+
+    return compressed_data
+
+
+def prs_decompress(compressed_data):
+    decompressed_data = bytearray()
+    length = len(compressed_data)
+    pos = 0
+
+    while pos < length:
+        command_byte = compressed_data[pos]
+        pos += 1
+
+        if command_byte == 0:
+            decompressed_data.append(compressed_data[pos])
+            pos += 1
+        else:
+            rep_offset = ((command_byte & 0xF) << 8) | compressed_data[pos]
+            rep_length = (command_byte >> 4) + 3
+            pos += 1
+
+            for i in range(rep_length):
+                decompressed_data.append(decompressed_data[-rep_offset])
+
+    return decompressed_data
+
+
 def unpack_bml(filename, unpack_dir):
     if not os.path.exists(filename):
         return None
@@ -53,11 +112,13 @@ def unpack_bml(filename, unpack_dir):
             if byte != 0:
                 file.seek(-1, os.SEEK_CUR)
                 bytes_data = file.read(bml_entries[len(bml_data)]["compressed_size"])
+                if bml_entries[len(bml_data)]["filename"].endswith(".pvm"):
+                    decompressed_data = prs_decompress(bytes_data)
+                else:
+                    decompressed_data = bytes_data
                 bml_data.append({
                     "filename": bml_entries[len(bml_data)]["filename"],
-                    # PRS decompression not implemented at the moment.
-                    # "bytes": prs_decompress(bytes_data)
-                    "bytes": bytes_data
+                    "bytes": decompressed_data
                 })
 
         for file_info in bml_data:
@@ -72,6 +133,7 @@ def unpack_bml(filename, unpack_dir):
 
         return bml_data
 
+
 def pack_bml(unpack_dir, filename, order_file):
     print("Packing:", unpack_dir, "to file:", filename)
     with open(order_file, "r") as order_fp:
@@ -84,7 +146,11 @@ def pack_bml(unpack_dir, filename, order_file):
         path = os.path.join(unpack_dir, item)
         with open(path, "rb") as f:
             raw_bytes = f.read()
-            contents.append({"filename": item, "bytes": raw_bytes})
+            if item.endswith(".pvm"):
+                compressed_data = prs_compress(raw_bytes)
+                contents.append({"filename": item, "bytes": compressed_data})
+            else:
+                contents.append({"filename": item, "bytes": raw_bytes})
 
             file_entry = struct.pack(
                 ">32sIIIII12s",
@@ -118,6 +184,7 @@ def pack_bml(unpack_dir, filename, order_file):
         out.write(b"\x00" * padding_size)
 
     print("BML archive repacked:", filename)
+
 
 def main():
     if len(sys.argv) < 2:
